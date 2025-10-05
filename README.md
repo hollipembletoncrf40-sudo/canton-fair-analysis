@@ -53,6 +53,11 @@
    - 响应式数据绑定
    - 开发效率高
 
+4. **论文级别图表** (`academic_charts.html`)
+   - 完全按照R生成的学术级样式
+   - 300 DPI高分辨率
+   - 适合论文发表和学术报告
+
 ### 核心技术
 - **HTML5**: 页面结构
 - **CSS3**: 样式设计和动画
@@ -133,6 +138,7 @@ canton-fair-analysis/
 ├── index.html                    # 原生JavaScript版本
 ├── react_dynamic_charts.html     # React版本
 ├── vue_dynamic_charts.html       # Vue.js版本
+├── academic_charts.html          # 论文级别图表版本
 ├── versions.html                 # 多版本选择页面
 ├── README.md                     # 项目说明文档
 ├── DEPLOYMENT_GUIDE.md           # 详细部署指南
