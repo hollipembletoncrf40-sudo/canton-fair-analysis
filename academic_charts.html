@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>论文级别图表展示 - Canton Fair Analysis</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -172,6 +171,12 @@
             background: #1e5f7a;
         }
 
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
         @media print {
             .navigation, .print-button {
                 display: none;
@@ -211,7 +216,9 @@
             <div class="chart-title">Figure 1: 参展商行业分布TOP15</div>
             <div class="chart-subtitle">Industry Distribution of Top 15 Exhibitors</div>
             <div class="chart-container">
-                <div class="chart-wrapper" id="industryChart"></div>
+                <div class="chart-wrapper" id="industryChart">
+                    <div class="loading">正在加载图表...</div>
+                </div>
                 <div class="chart-note">数据来源：广交会第136届参展商数据库 | 有效样本：14,919家</div>
             </div>
         </div>
@@ -221,7 +228,9 @@
             <div class="chart-title">Figure 2: 参展商地区分布TOP15</div>
             <div class="chart-subtitle">Regional Distribution of Top 15 Exhibitors</div>
             <div class="chart-container">
-                <div class="chart-wrapper" id="regionChart"></div>
+                <div class="chart-wrapper" id="regionChart">
+                    <div class="loading">正在加载图表...</div>
+                </div>
                 <div class="chart-note">数据来源：广交会第136届参展商数据库 | 有效样本：14,919家</div>
             </div>
         </div>
@@ -231,7 +240,9 @@
             <div class="chart-title">Figure 3: 行业潜力分析</div>
             <div class="chart-subtitle">Industry Potential Analysis</div>
             <div class="chart-container">
-                <div class="chart-wrapper large" id="industryPotentialChart"></div>
+                <div class="chart-wrapper large" id="industryPotentialChart">
+                    <div class="loading">正在加载图表...</div>
+                </div>
                 <div class="chart-note">气泡大小表示潜力评分，颜色深浅表示参展商数量</div>
             </div>
         </div>
@@ -241,7 +252,9 @@
             <div class="chart-title">Figure 4: 城市潜力分析</div>
             <div class="chart-subtitle">City Potential Analysis</div>
             <div class="chart-container">
-                <div class="chart-wrapper large" id="cityPotentialChart"></div>
+                <div class="chart-wrapper large" id="cityPotentialChart">
+                    <div class="loading">正在加载图表...</div>
+                </div>
                 <div class="chart-note">气泡大小表示潜力评分，颜色深浅表示城市多样性</div>
             </div>
         </div>
@@ -251,7 +264,9 @@
             <div class="chart-title">Figure 5: 行业-地区分布热力图</div>
             <div class="chart-subtitle">Industry-Region Distribution Heatmap</div>
             <div class="chart-container">
-                <div class="chart-wrapper large" id="heatmapChart"></div>
+                <div class="chart-wrapper large" id="heatmapChart">
+                    <div class="loading">正在加载图表...</div>
+                </div>
                 <div class="chart-note">颜色深浅表示该行业在该地区的分布密度</div>
             </div>
         </div>
@@ -261,7 +276,9 @@
             <div class="chart-title">Figure 6: 行业与城市潜力对比</div>
             <div class="chart-subtitle">Industry vs City Potential Comparison</div>
             <div class="chart-container">
-                <div class="chart-wrapper" id="comparisonChart"></div>
+                <div class="chart-wrapper" id="comparisonChart">
+                    <div class="loading">正在加载图表...</div>
+                </div>
                 <div class="chart-note">标准化潜力评分对比分析</div>
             </div>
         </div>
@@ -272,17 +289,25 @@
             <div class="chart-subtitle">Comprehensive Analysis Grid</div>
             <div class="chart-container">
                 <div class="combined-chart">
-                    <div class="chart-wrapper small" id="combined1"></div>
-                    <div class="chart-wrapper small" id="combined2"></div>
-                    <div class="chart-wrapper small" id="combined3"></div>
-                    <div class="chart-wrapper small" id="combined4"></div>
+                    <div class="chart-wrapper small" id="combined1">
+                        <div class="loading">正在加载图表...</div>
+                    </div>
+                    <div class="chart-wrapper small" id="combined2">
+                        <div class="loading">正在加载图表...</div>
+                    </div>
+                    <div class="chart-wrapper small" id="combined3">
+                        <div class="loading">正在加载图表...</div>
+                    </div>
+                    <div class="chart-wrapper small" id="combined4">
+                        <div class="loading">正在加载图表...</div>
+                    </div>
                 </div>
                 <div class="chart-note">四宫格综合分析展示</div>
             </div>
         </div>
 
         <div class="data-source">
-            <p><strong>数据来源：</strong>广交会第136届参展商数据库 | <strong>分析时间：</strong>2024年 | <strong>生成工具：</strong>JavaScript + D3.js + Chart.js</p>
+            <p><strong>数据来源：</strong>广交会第136届参展商数据库 | <strong>分析时间：</strong>2024年 | <strong>生成工具：</strong>JavaScript + Chart.js</p>
         </div>
     </div>
 
@@ -355,7 +380,10 @@
 
         // Figure 1: Industry Distribution Chart
         function createIndustryChart() {
-            const ctx = document.getElementById('industryChart').getContext('2d');
+            const container = document.getElementById('industryChart');
+            container.innerHTML = '<canvas></canvas>';
+            const ctx = container.querySelector('canvas').getContext('2d');
+            
             new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -372,11 +400,16 @@
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: {
                             display: false
                         },
                         tooltip: {
+                            enabled: true,
                             callbacks: {
                                 label: function(context) {
                                     const dataIndex = context.dataIndex;
@@ -416,7 +449,10 @@
 
         // Figure 2: Region Distribution Chart
         function createRegionChart() {
-            const ctx = document.getElementById('regionChart').getContext('2d');
+            const container = document.getElementById('regionChart');
+            container.innerHTML = '<canvas></canvas>';
+            const ctx = container.querySelector('canvas').getContext('2d');
+            
             new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -433,11 +469,16 @@
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: {
                             display: false
                         },
                         tooltip: {
+                            enabled: true,
                             callbacks: {
                                 label: function(context) {
                                     const dataIndex = context.dataIndex;
@@ -477,11 +518,13 @@
 
         // Figure 3: Industry Potential Bubble Chart
         function createIndustryPotentialChart() {
-            const ctx = document.getElementById('industryPotentialChart').getContext('2d');
+            const container = document.getElementById('industryPotentialChart');
+            container.innerHTML = '<canvas></canvas>';
+            const ctx = container.querySelector('canvas').getContext('2d');
             
             const potentialData = industryData.slice(0, 10).map((d, i) => ({
                 x: d.count,
-                y: Math.random() * 100 + 50, // 模拟潜力评分
+                y: Math.random() * 100 + 50,
                 r: Math.sqrt(d.count) * 0.5,
                 label: d.name
             }));
@@ -500,11 +543,16 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: {
                             display: false
                         },
                         tooltip: {
+                            enabled: true,
                             callbacks: {
                                 label: function(context) {
                                     const dataIndex = context.dataIndex;
@@ -559,7 +607,9 @@
 
         // Figure 4: City Potential Bubble Chart
         function createCityPotentialChart() {
-            const ctx = document.getElementById('cityPotentialChart').getContext('2d');
+            const container = document.getElementById('cityPotentialChart');
+            container.innerHTML = '<canvas></canvas>';
+            const ctx = container.querySelector('canvas').getContext('2d');
             
             const cityPotentialData = regionData.slice(0, 10).map((d, i) => ({
                 x: d.count,
@@ -582,11 +632,16 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: {
                             display: false
                         },
                         tooltip: {
+                            enabled: true,
                             callbacks: {
                                 label: function(context) {
                                     const dataIndex = context.dataIndex;
@@ -641,7 +696,9 @@
 
         // Figure 5: Heatmap Chart
         function createHeatmapChart() {
-            const ctx = document.getElementById('heatmapChart').getContext('2d');
+            const container = document.getElementById('heatmapChart');
+            container.innerHTML = '<canvas></canvas>';
+            const ctx = container.querySelector('canvas').getContext('2d');
             
             // 创建热力图数据
             const heatmapData = [];
@@ -676,11 +733,16 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: {
                             display: false
                         },
                         tooltip: {
+                            enabled: true,
                             callbacks: {
                                 label: function(context) {
                                     return `${context.parsed.y} - ${context.parsed.x}: ${context.parsed.v.toFixed(1)}%`;
@@ -734,7 +796,9 @@
 
         // Figure 6: Comparison Chart
         function createComparisonChart() {
-            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            const container = document.getElementById('comparisonChart');
+            container.innerHTML = '<canvas></canvas>';
+            const ctx = container.querySelector('canvas').getContext('2d');
             
             const comparisonData = {
                 labels: ['电子及家电', '纺织服装', '家居用品', '建材五金', '食品饮料'],
@@ -759,6 +823,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: {
                             position: 'top',
@@ -770,6 +838,7 @@
                             }
                         },
                         tooltip: {
+                            enabled: true,
                             callbacks: {
                                 label: function(context) {
                                     return `${context.dataset.label}: ${context.parsed.y}分`;
@@ -810,7 +879,10 @@
         // Combined Charts
         function createCombinedCharts() {
             // Combined Chart 1: Industry Distribution (simplified)
-            const ctx1 = document.getElementById('combined1').getContext('2d');
+            const container1 = document.getElementById('combined1');
+            container1.innerHTML = '<canvas></canvas>';
+            const ctx1 = container1.querySelector('canvas').getContext('2d');
+            
             new Chart(ctx1, {
                 type: 'doughnut',
                 data: {
@@ -823,6 +895,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -838,7 +914,10 @@
             });
 
             // Combined Chart 2: Region Distribution (simplified)
-            const ctx2 = document.getElementById('combined2').getContext('2d');
+            const container2 = document.getElementById('combined2');
+            container2.innerHTML = '<canvas></canvas>';
+            const ctx2 = container2.querySelector('canvas').getContext('2d');
+            
             new Chart(ctx2, {
                 type: 'doughnut',
                 data: {
@@ -851,6 +930,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -866,7 +949,10 @@
             });
 
             // Combined Chart 3: Potential Score
-            const ctx3 = document.getElementById('combined3').getContext('2d');
+            const container3 = document.getElementById('combined3');
+            container3.innerHTML = '<canvas></canvas>';
+            const ctx3 = container3.querySelector('canvas').getContext('2d');
+            
             new Chart(ctx3, {
                 type: 'line',
                 data: {
@@ -888,6 +974,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -923,7 +1013,10 @@
             });
 
             // Combined Chart 4: Growth Rate
-            const ctx4 = document.getElementById('combined4').getContext('2d');
+            const container4 = document.getElementById('combined4');
+            container4.innerHTML = '<canvas></canvas>';
+            const ctx4 = container4.querySelector('canvas').getContext('2d');
+            
             new Chart(ctx4, {
                 type: 'bar',
                 data: {
@@ -939,6 +1032,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: {
                             display: false
@@ -967,15 +1064,49 @@
             });
         }
 
-        // Initialize all charts
+        // Initialize all charts with error handling
         document.addEventListener('DOMContentLoaded', function() {
-            createIndustryChart();
-            createRegionChart();
-            createIndustryPotentialChart();
-            createCityPotentialChart();
-            createHeatmapChart();
-            createComparisonChart();
-            createCombinedCharts();
+            console.log('Chart.js version:', Chart.version);
+            console.log('Initializing charts...');
+            
+            try {
+                createIndustryChart();
+                console.log('✓ Industry chart created');
+                
+                setTimeout(() => {
+                    createRegionChart();
+                    console.log('✓ Region chart created');
+                }, 200);
+                
+                setTimeout(() => {
+                    createIndustryPotentialChart();
+                    console.log('✓ Industry potential chart created');
+                }, 400);
+                
+                setTimeout(() => {
+                    createCityPotentialChart();
+                    console.log('✓ City potential chart created');
+                }, 600);
+                
+                setTimeout(() => {
+                    createHeatmapChart();
+                    console.log('✓ Heatmap chart created');
+                }, 800);
+                
+                setTimeout(() => {
+                    createComparisonChart();
+                    console.log('✓ Comparison chart created');
+                }, 1000);
+                
+                setTimeout(() => {
+                    createCombinedCharts();
+                    console.log('✓ Combined charts created');
+                    console.log('🎉 All charts initialized successfully!');
+                }, 1200);
+                
+            } catch (error) {
+                console.error('❌ Error initializing charts:', error);
+            }
         });
     </script>
 </body>
