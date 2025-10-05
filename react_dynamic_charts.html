@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>参展商数据分析 - React动态可视化</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2E86AB 0%, #A23B72 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #6c757d;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #2E86AB;
+            border-bottom: 3px solid #2E86AB;
+        }
+
+        .tab-content {
+            padding: 30px;
+            min-height: 600px;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .chart-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background: #2E86AB;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .control-btn:hover {
+            background: #1e5f7a;
+            transform: translateY(-2px);
+        }
+
+        .control-btn.active {
+            background: #A23B72;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            pointer-events: none;
+            font-size: 12px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #6c757d;
+        }
+
+        .bubble-chart {
+            width: 100%;
+            height: 500px;
+        }
+
+        .heatmap-container {
+            width: 100%;
+            height: 500px;
+            overflow: auto;
+        }
+
+        .animation-container {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // 数据
+        const data = {
+            industries: [
+                { name: "其他通用机械、小型加工机械及工业零部件", count: 79, percentage: 0.52 },
+                { name: "其他礼品及赠品", count: 68, percentage: 0.46 },
+                { name: "其他家居用品", count: 52, percentage: 0.35 },
+                { name: "其他男女装", count: 52, percentage: 0.35 },
+                { name: "其他家居装饰品", count: 39, percentage: 0.26 },
+                { name: "其他电子消费品及信息产品", count: 39, percentage: 0.26 },
+                { name: "其他园林用品", count: 33, percentage: 0.22 },
+                { name: "毛绒玩具动物", count: 33, percentage: 0.22 },
+                { name: "其他五金制品", count: 32, percentage: 0.21 },
+                { name: "其他化工产品", count: 30, percentage: 0.20 }
+            ],
+            regions: [
+                { name: "浙江省", count: 2995, percentage: 19.85 },
+                { name: "广东省", count: 2732, percentage: 18.11 },
+                { name: "江苏省", count: 1813, percentage: 12.02 },
+                { name: "山东省", count: 1421, percentage: 9.42 },
+                { name: "福建省", count: 1350, percentage: 8.95 },
+                { name: "河北省", count: 604, percentage: 4.00 },
+                { name: "上海市", count: 573, percentage: 3.80 },
+                { name: "安徽省", count: 479, percentage: 3.18 },
+                { name: "辽宁省", count: 399, percentage: 2.65 },
+                { name: "河南省", count: 337, percentage: 2.23 }
+            ],
+            industryPotential: [
+                { name: "其他通用机械、小型加工机械及工业零部件", provinces: 19, exhibitors: 79, score: 100 },
+                { name: "其他礼品及赠品", provinces: 17, exhibitors: 68, score: 84.5 },
+                { name: "其他家居用品", provinces: 17, exhibitors: 52, score: 72.6 },
+                { name: "其他男女装", provinces: 16, exhibitors: 52, score: 72.6 },
+                { name: "其他园林用品", provinces: 12, exhibitors: 33, score: 52.8 }
+            ],
+            cityPotential: [
+                { name: "宁波市", province: "浙江省", exhibitors: 854, industries: 793, score: 100 },
+                { name: "杭州市", province: "浙江省", exhibitors: 554, industries: 534, score: 66.9 },
+                { name: "深圳市", province: "广东省", exhibitors: 556, industries: 529, score: 66.4 },
+                { name: "市辖区", province: "上海市", exhibitors: 542, industries: 519, score: 65.1 },
+                { name: "广州市", province: "广东省", exhibitors: 509, industries: 482, score: 60.5 }
+            ]
+        };
+
+        // 统计卡片组件
+        function StatCard({ number, label, color = "#667eea" }) {
+            return (
+                <div className="stat-card" style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)` }}>
+                    <div className="stat-number">{number}</div>
+                    <div className="stat-label">{label}</div>
+                </div>
+            );
+        }
+
+        // 概览页面组件
+        function OverviewTab() {
+            const [industryChart, setIndustryChart] = useState(null);
+            const [regionChart, setRegionChart] = useState(null);
+            const industryRef = useRef(null);
+            const regionRef = useRef(null);
+
+            useEffect(() => {
+                // 行业分布图表
+                if (industryRef.current && !industryChart) {
+                    const ctx = industryRef.current.getContext('2d');
+                    const chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.industries.slice(0, 10).map(item => item.name.substring(0, 15) + '...'),
+                            datasets: [{
+                                label: '参展商数量',
+                                data: data.industries.slice(0, 10).map(item => item.count),
+                                backgroundColor: 'rgba(46, 134, 171, 0.8)',
+                                borderColor: 'rgba(46, 134, 171, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true }
+                            },
+                            animation: {
+                                duration: 2000,
+                                easing: 'easeInOutQuart'
+                            }
+                        }
+                    });
+                    setIndustryChart(chart);
+                }
+
+                // 地区分布图表
+                if (regionRef.current && !regionChart) {
+                    const ctx = regionRef.current.getContext('2d');
+                    const chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.regions.slice(0, 10).map(item => item.name),
+                            datasets: [{
+                                label: '参展商数量',
+                                data: data.regions.slice(0, 10).map(item => item.count),
+                                backgroundColor: 'rgba(162, 59, 114, 0.8)',
+                                borderColor: 'rgba(162, 59, 114, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true }
+                            },
+                            animation: {
+                                duration: 2000,
+                                easing: 'easeInOutQuart'
+                            }
+                        }
+                    });
+                    setRegionChart(chart);
+                }
+
+                return () => {
+                    if (industryChart) industryChart.destroy();
+                    if (regionChart) regionChart.destroy();
+                };
+            }, []);
+
+            return (
+                <div className="animation-container">
+                    <div className="stats-grid">
+                        <StatCard number="31,990" label="总参展商数量" color="#667eea" />
+                        <StatCard number="12,231" label="涉及行业数量" color="#764ba2" />
+                        <StatCard number="31" label="涉及地区数量" color="#f093fb" />
+                        <StatCard number="14,919" label="有效数据量" color="#f5576c" />
+                    </div>
+
+                    <div className="chart-container">
+                        <div className="chart-title">行业分布TOP10</div>
+                        <canvas ref={industryRef} width="400" height="200"></canvas>
+                    </div>
+
+                    <div className="chart-container">
+                        <div className="chart-title">地区分布TOP10</div>
+                        <canvas ref={regionRef} width="400" height="200"></canvas>
+                    </div>
+                </div>
+            );
+        }
+
+        // 行业分析页面组件
+        function IndustryTab() {
+            const [chartType, setChartType] = useState('bar');
+            const [chart, setChart] = useState(null);
+            const chartRef = useRef(null);
+
+            useEffect(() => {
+                if (chartRef.current) {
+                    if (chart) chart.destroy();
+                    
+                    const ctx = chartRef.current.getContext('2d');
+                    const colors = [
+                        'rgba(46, 134, 171, 0.8)',
+                        'rgba(162, 59, 114, 0.8)',
+                        'rgba(241, 143, 1, 0.8)',
+                        'rgba(199, 62, 29, 0.8)',
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(118, 75, 162, 0.8)',
+                        'rgba(52, 152, 219, 0.8)',
+                        'rgba(155, 89, 182, 0.8)',
+                        'rgba(46, 204, 113, 0.8)',
+                        'rgba(230, 126, 34, 0.8)'
+                    ];
+
+                    const newChart = new Chart(ctx, {
+                        type: chartType,
+                        data: {
+                            labels: data.industries.map(item => item.name.substring(0, 20) + '...'),
+                            datasets: [{
+                                label: '参展商数量',
+                                data: data.industries.map(item => item.count),
+                                backgroundColor: chartType === 'bar' ? colors[0] : colors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: chartType !== 'bar'
+                                }
+                            },
+                            animation: {
+                                duration: 1500,
+                                easing: 'easeInOutQuart'
+                            }
+                        }
+                    });
+                    setChart(newChart);
+                }
+            }, [chartType]);
+
+            return (
+                <div className="animation-container">
+                    <div className="controls">
+                        <button 
+                            className={`control-btn ${chartType === 'bar' ? 'active' : ''}`}
+                            onClick={() => setChartType('bar')}
+                        >
+                            柱状图
+                        </button>
+                        <button 
+                            className={`control-btn ${chartType === 'pie' ? 'active' : ''}`}
+                            onClick={() => setChartType('pie')}
+                        >
+                            饼图
+                        </button>
+                        <button 
+                            className={`control-btn ${chartType === 'doughnut' ? 'active' : ''}`}
+                            onClick={() => setChartType('doughnut')}
+                        >
+                            环形图
+                        </button>
+                    </div>
+                    <div className="chart-container">
+                        <div className="chart-title">行业分布分析</div>
+                        <canvas ref={chartRef} width="400" height="300"></canvas>
+                    </div>
+                </div>
+            );
+        }
+
+        // 地区分析页面组件
+        function RegionTab() {
+            const [chartType, setChartType] = useState('bar');
+            const [chart, setChart] = useState(null);
+            const chartRef = useRef(null);
+
+            useEffect(() => {
+                if (chartRef.current) {
+                    if (chart) chart.destroy();
+                    
+                    const ctx = chartRef.current.getContext('2d');
+                    const newChart = new Chart(ctx, {
+                        type: chartType,
+                        data: {
+                            labels: data.regions.map(item => item.name),
+                            datasets: [{
+                                label: '参展商数量',
+                                data: data.regions.map(item => item.count),
+                                backgroundColor: 'rgba(162, 59, 114, 0.8)',
+                                borderColor: 'rgba(162, 59, 114, 1)',
+                                borderWidth: 1,
+                                fill: chartType === 'line'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            animation: {
+                                duration: 1500,
+                                easing: 'easeInOutQuart'
+                            }
+                        }
+                    });
+                    setChart(newChart);
+                }
+            }, [chartType]);
+
+            return (
+                <div className="animation-container">
+                    <div className="controls">
+                        <button 
+                            className={`control-btn ${chartType === 'bar' ? 'active' : ''}`}
+                            onClick={() => setChartType('bar')}
+                        >
+                            柱状图
+                        </button>
+                        <button 
+                            className={`control-btn ${chartType === 'pie' ? 'active' : ''}`}
+                            onClick={() => setChartType('pie')}
+                        >
+                            饼图
+                        </button>
+                        <button 
+                            className={`control-btn ${chartType === 'line' ? 'active' : ''}`}
+                            onClick={() => setChartType('line')}
+                        >
+                            折线图
+                        </button>
+                    </div>
+                    <div className="chart-container">
+                        <div className="chart-title">地区分布分析</div>
+                        <canvas ref={chartRef} width="400" height="300"></canvas>
+                    </div>
+                </div>
+            );
+        }
+
+        // 潜力分析页面组件
+        function PotentialTab() {
+            const industrySvgRef = useRef(null);
+            const citySvgRef = useRef(null);
+
+            useEffect(() => {
+                // 行业潜力气泡图
+                if (industrySvgRef.current) {
+                    const svg = d3.select(industrySvgRef.current);
+                    svg.selectAll("*").remove();
+                    
+                    const width = industrySvgRef.current.offsetWidth;
+                    const height = 500;
+
+                    svg.attr('width', width).attr('height', height);
+
+                    svg.selectAll('circle')
+                        .data(data.industryPotential)
+                        .enter()
+                        .append('circle')
+                        .attr('cx', d => (d.provinces / 20) * width * 0.8 + width * 0.1)
+                        .attr('cy', d => height - (d.exhibitors / 100) * height * 0.8 - height * 0.1)
+                        .attr('r', 0)
+                        .attr('fill', 'rgba(241, 143, 1, 0.7)')
+                        .attr('stroke', 'rgba(241, 143, 1, 1)')
+                        .attr('stroke-width', 2)
+                        .transition()
+                        .duration(1000)
+                        .attr('r', d => Math.sqrt(d.score) * 2)
+                        .on('mouseover', function(event, d) {
+                            d3.select(this)
+                                .attr('fill', 'rgba(241, 143, 1, 1)')
+                                .attr('r', Math.sqrt(d.score) * 2.5);
+                        })
+                        .on('mouseout', function(event, d) {
+                            d3.select(this)
+                                .attr('fill', 'rgba(241, 143, 1, 0.7)')
+                                .attr('r', Math.sqrt(d.score) * 2);
+                        });
+                }
+
+                // 城市潜力气泡图
+                if (citySvgRef.current) {
+                    const svg = d3.select(citySvgRef.current);
+                    svg.selectAll("*").remove();
+                    
+                    const width = citySvgRef.current.offsetWidth;
+                    const height = 500;
+
+                    svg.attr('width', width).attr('height', height);
+
+                    svg.selectAll('circle')
+                        .data(data.cityPotential)
+                        .enter()
+                        .append('circle')
+                        .attr('cx', d => (d.industries / 800) * width * 0.8 + width * 0.1)
+                        .attr('cy', d => height - (d.exhibitors / 1000) * height * 0.8 - height * 0.1)
+                        .attr('r', 0)
+                        .attr('fill', 'rgba(199, 62, 29, 0.7)')
+                        .attr('stroke', 'rgba(199, 62, 29, 1)')
+                        .attr('stroke-width', 2)
+                        .transition()
+                        .duration(1000)
+                        .delay((d, i) => i * 200)
+                        .attr('r', d => Math.sqrt(d.score) * 3)
+                        .on('mouseover', function(event, d) {
+                            d3.select(this)
+                                .attr('fill', 'rgba(199, 62, 29, 1)')
+                                .attr('r', Math.sqrt(d.score) * 3.5);
+                        })
+                        .on('mouseout', function(event, d) {
+                            d3.select(this)
+                                .attr('fill', 'rgba(199, 62, 29, 0.7)')
+                                .attr('r', Math.sqrt(d.score) * 3);
+                        });
+                }
+            }, []);
+
+            return (
+                <div className="animation-container">
+                    <div className="chart-container">
+                        <div className="chart-title">行业潜力分析</div>
+                        <div className="bubble-chart">
+                            <svg ref={industrySvgRef}></svg>
+                        </div>
+                    </div>
+                    <div className="chart-container">
+                        <div className="chart-title">城市潜力分析</div>
+                        <div className="bubble-chart">
+                            <svg ref={citySvgRef}></svg>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 热力图页面组件
+        function HeatmapTab() {
+            const svgRef = useRef(null);
+
+            useEffect(() => {
+                if (svgRef.current) {
+                    const heatmapData = [
+                        { industry: "其他通用机械", region: "浙江省", value: 17 },
+                        { industry: "其他礼品及赠品", region: "浙江省", value: 12 },
+                        { industry: "其他家居用品", region: "浙江省", value: 14 },
+                        { industry: "其他男女装", region: "浙江省", value: 10 },
+                        { industry: "其他通用机械", region: "广东省", value: 15 },
+                        { industry: "其他礼品及赠品", region: "广东省", value: 18 },
+                        { industry: "其他家居用品", region: "广东省", value: 11 },
+                        { industry: "其他男女装", region: "广东省", value: 13 },
+                        { industry: "其他通用机械", region: "江苏省", value: 12 },
+                        { industry: "其他礼品及赠品", region: "江苏省", value: 16 },
+                        { industry: "其他家居用品", region: "江苏省", value: 9 },
+                        { industry: "其他男女装", region: "江苏省", value: 9 }
+                    ];
+
+                    const svg = d3.select(svgRef.current);
+                    svg.selectAll("*").remove();
+                    
+                    const width = svgRef.current.offsetWidth;
+                    const height = 500;
+                    const margin = { top: 50, right: 50, bottom: 50, left: 150 };
+
+                    svg.attr('width', width).attr('height', height);
+
+                    const xScale = d3.scaleBand()
+                        .domain(heatmapData.map(d => d.region))
+                        .range([margin.left, width - margin.right])
+                        .padding(0.1);
+
+                    const yScale = d3.scaleBand()
+                        .domain(heatmapData.map(d => d.industry))
+                        .range([margin.top, height - margin.bottom])
+                        .padding(0.1);
+
+                    const colorScale = d3.scaleSequential()
+                        .domain([0, d3.max(heatmapData, d => d.value)])
+                        .interpolator(d3.interpolateViridis);
+
+                    svg.selectAll('rect')
+                        .data(heatmapData)
+                        .enter()
+                        .append('rect')
+                        .attr('x', d => xScale(d.region))
+                        .attr('y', d => yScale(d.industry))
+                        .attr('width', xScale.bandwidth())
+                        .attr('height', yScale.bandwidth())
+                        .attr('fill', d => colorScale(d.value))
+                        .attr('stroke', 'white')
+                        .attr('stroke-width', 1)
+                        .style('opacity', 0)
+                        .transition()
+                        .duration(1000)
+                        .style('opacity', 1)
+                        .on('mouseover', function(event, d) {
+                            d3.select(this)
+                                .attr('stroke', 'black')
+                                .attr('stroke-width', 3);
+                        })
+                        .on('mouseout', function(event, d) {
+                            d3.select(this)
+                                .attr('stroke', 'white')
+                                .attr('stroke-width', 1);
+                        });
+
+                    // 添加坐标轴
+                    svg.append('g')
+                        .attr('transform', `translate(0, ${height - margin.bottom})`)
+                        .call(d3.axisBottom(xScale))
+                        .selectAll('text')
+                        .style('text-anchor', 'end')
+                        .attr('dx', '-.8em')
+                        .attr('dy', '.15em')
+                        .attr('transform', 'rotate(-45)');
+
+                    svg.append('g')
+                        .attr('transform', `translate(${margin.left}, 0)`)
+                        .call(d3.axisLeft(yScale));
+                }
+            }, []);
+
+            return (
+                <div className="animation-container">
+                    <div className="chart-container">
+                        <div className="chart-title">行业-地区分布热力图</div>
+                        <div className="heatmap-container">
+                            <svg ref={svgRef}></svg>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 主应用组件
+        function App() {
+            const [activeTab, setActiveTab] = useState('overview');
+
+            const tabs = [
+                { id: 'overview', label: '概览', component: OverviewTab },
+                { id: 'industry', label: '行业分析', component: IndustryTab },
+                { id: 'region', label: '地区分析', component: RegionTab },
+                { id: 'potential', label: '潜力分析', component: PotentialTab },
+                { id: 'heatmap', label: '热力图', component: HeatmapTab }
+            ];
+
+            const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component;
+
+            return (
+                <div className="app">
+                    <div className="header">
+                        <h1>参展商数据分析</h1>
+                        <p>React动态可视化分析平台 - Canton Fair 136th Session</p>
+                    </div>
+
+                    <div className="nav-tabs">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
+                                onClick={() => setActiveTab(tab.id)}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="tab-content">
+                        {ActiveComponent && <ActiveComponent />}
+                    </div>
+                </div>
+            );
+        }
+
+        // 渲染应用
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canton Fair Analysis - 多版本选择</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2E86AB 0%, #A23B72 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .versions {
+            padding: 40px;
+        }
+
+        .version-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .version-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .version-card:hover {
+            transform: translateY(-5px);
+            border-color: #2E86AB;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .version-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .version-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .version-description {
+            color: #6c757d;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .version-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .version-features li {
+            padding: 5px 0;
+            color: #495057;
+        }
+
+        .version-features li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .version-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #2E86AB 0%, #A23B72 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .version-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .stats {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2E86AB;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+
+        @media (max-width: 768px) {
+            .version-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>参展商数据分析</h1>
+            <p>多技术栈动态可视化分析平台 - Canton Fair 136th Session</p>
+        </div>
+
+        <div class="versions">
+            <div class="stats">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">31,990</div>
+                        <div class="stat-label">总参展商数量</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">12,231</div>
+                        <div class="stat-label">涉及行业数量</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">31</div>
+                        <div class="stat-label">涉及地区数量</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">技术栈版本</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="version-grid">
+                <div class="version-card">
+                    <div class="version-icon">⚡</div>
+                    <div class="version-title">原生JavaScript版本</div>
+                    <div class="version-description">
+                        轻量级、高性能的原生JavaScript实现，兼容性最佳，加载速度最快。
+                    </div>
+                    <ul class="version-features">
+                        <li>HTML5 + CSS3 + JavaScript</li>
+                        <li>D3.js + Chart.js 图表库</li>
+                        <li>响应式设计</li>
+                        <li>动画效果</li>
+                        <li>最佳兼容性</li>
+                    </ul>
+                    <a href="index.html" class="version-btn">选择此版本</a>
+                </div>
+
+                <div class="version-card">
+                    <div class="version-icon">⚛️</div>
+                    <div class="version-title">React版本</div>
+                    <div class="version-description">
+                        基于React 18的现代化组件化实现，适合大型项目和复杂交互。
+                    </div>
+                    <ul class="version-features">
+                        <li>React 18 + Hooks</li>
+                        <li>组件化开发</li>
+                        <li>状态管理</li>
+                        <li>现代React特性</li>
+                        <li>可扩展架构</li>
+                    </ul>
+                    <a href="react_dynamic_charts.html" class="version-btn">选择此版本</a>
+                </div>
+
+                <div class="version-card">
+                    <div class="version-icon">💚</div>
+                    <div class="version-title">Vue.js版本</div>
+                    <div class="version-description">
+                        基于Vue 3的响应式实现，开发效率高，学习曲线平缓。
+                    </div>
+                    <ul class="version-features">
+                        <li>Vue 3 + Composition API</li>
+                        <li>响应式数据绑定</li>
+                        <li>简洁的模板语法</li>
+                        <li>快速开发</li>
+                        <li>易于维护</li>
+                    </ul>
+                    <a href="vue_dynamic_charts.html" class="version-btn">选择此版本</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>数据来源: Canton Fair 136th Session Exhibitor Database | 生成时间: 2024年</p>
+            <p>所有版本都提供相同的功能，请根据您的技术偏好选择</p>
+        </div>
+    </div>
+</body>
+</html>

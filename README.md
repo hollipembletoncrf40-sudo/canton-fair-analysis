@@ -6,7 +6,9 @@
 
 ## 🚀 在线演示
 
-**GitHub Pages**: [https://your-username.github.io/canton-fair-analysis](https://your-username.github.io/canton-fair-analysis)
+**GitHub Pages**: [https://hollipembletoncrf40-sudo.github.io/canton-fair-analysis](https://hollipembletoncrf40-sudo.github.io/canton-fair-analysis)
+
+**多版本选择**: [https://hollipembletoncrf40-sudo.github.io/canton-fair-analysis/versions.html](https://hollipembletoncrf40-sudo.github.io/canton-fair-analysis/versions.html)
 
 ## 🎨 功能特性
 
@@ -33,6 +35,25 @@
 
 ## 🛠️ 技术栈
 
+### 多版本支持
+项目提供三个不同技术栈的版本：
+
+1. **原生JavaScript版本** (`index.html`)
+   - HTML5 + CSS3 + JavaScript
+   - D3.js + Chart.js
+   - 最佳兼容性，加载速度最快
+
+2. **React版本** (`react_dynamic_charts.html`)
+   - React 18 + Hooks
+   - 组件化开发
+   - 适合大型项目
+
+3. **Vue.js版本** (`vue_dynamic_charts.html`)
+   - Vue 3 + Composition API
+   - 响应式数据绑定
+   - 开发效率高
+
+### 核心技术
 - **HTML5**: 页面结构
 - **CSS3**: 样式设计和动画
 - **JavaScript**: 交互逻辑
@@ -109,11 +130,18 @@ const colors = {
 
 ```
 canton-fair-analysis/
-├── index.html          # 主页面文件
-├── README.md           # 项目说明文档
+├── index.html                    # 原生JavaScript版本
+├── react_dynamic_charts.html     # React版本
+├── vue_dynamic_charts.html       # Vue.js版本
+├── versions.html                 # 多版本选择页面
+├── README.md                     # 项目说明文档
+├── DEPLOYMENT_GUIDE.md           # 详细部署指南
+├── QUICK_START.md                # 快速开始指南
+├── auto_deploy.sh                # 自动部署脚本
+├── status.sh                     # 状态检查脚本
 └── .github/
     └── workflows/
-        └── deploy.yml  # GitHub Pages部署配置
+        └── deploy.yml            # GitHub Pages部署配置
 ```
 
 ## 🌐 浏览器兼容性
